@@ -259,7 +259,9 @@ static inline type name (type1 arg1,type2 arg2,type3 arg3,type4 arg4,type5 arg5,
 #endif
 
 #ifdef __NR_gettid
+#ifndef __USE_GNU
 _syscall0(int, gettid)
+#endif
 #else
 /* This is a replacement for the host gettid() and must return a host
    errno. */
@@ -8835,9 +8837,11 @@ abi_long do_syscall(void *cpu_env, int num, abi_long arg1,
     case TARGET_NR_stime:
         {
             time_t host_time;
+            struct timespec ts = { 0 };
             if (get_user_sal(host_time, arg1))
                 goto efault;
-            ret = get_errno(stime(&host_time));
+            ts.tv_sec = host_time;
+            ret = get_errno(clock_settime(CLOCK_REALTIME, &ts));
         }
         break;
 #endif
